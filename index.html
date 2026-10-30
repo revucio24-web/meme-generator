@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Generator Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Comic+Neue:wght@700&family=Oswald:wght@700&family=Permanent+Marker&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .canvas-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #memeCanvas {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .drop-zone {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 3px dashed #f5576c;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(245, 87, 108, 0.05);
+            font-size: 18px;
+            color: #f5576c;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .drop-zone.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: white;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .color-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-group input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-group input[type="range"] {
+            flex: 1;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: #f5576c;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .download-btn {
+            background: #28a745;
+        }
+
+        .download-btn:hover {
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .templates {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .template {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .template:hover {
+            border-color: #f5576c;
+            transform: scale(1.05);
+        }
+
+        .template img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #f5576c;
+            border-bottom-color: #f5576c;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            border-color: #f5576c;
+        }
+
+        .filter-btn.active {
+            background: #f5576c;
+            color: white;
+            border-color: #f5576c;
+        }
+
+        .export-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .export-group button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        .presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            border-color: #f5576c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>😂 Meme Generator Pro</h1>
+        <p class="subtitle">Erstelle professionelle Memes – 100% kostenlos & lokal</p>
+
+        <div class="main-layout">
+            <!-- Canvas Bereich -->
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="memeCanvas" width="500" height="500"></canvas>
+                <div class="drop-zone" id="dropZone">📁 Bild hierher ziehen</div>
+            </div>
+
+            <!-- Steuerung -->
+            <div class="controls">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('image', this)">Bild</button>
+                    <button class="tab" onclick="switchTab('text', this)">Text</button>
+                    <button class="tab" onclick="switchTab('style', this)">Stil</button>
+                    <button class="tab" onclick="switchTab('effects', this)">Effekte</button>
+                </div>
+
+                <!-- Tab: Bild -->
+                <div id="image" class="tab-content active">
+                    <div class="form-group">
+                        <label>Eigene Bild hochladen (oder Drag & Drop):</label>
+                        <input type="file" id="imageUpload" accept="image/*" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Oder Template wählen:</label>
+                        <div class="templates" id="templates">
+                            <div class="template" onclick="loadTemplate('drake')" title="Drake">
+                                <span>Drake</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('distracted')" title="Distracted Boyfriend">
+                                <span>Distracted</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('change')" title="Change My Mind">
+                                <span>Change My Mind</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('doge')" title="Doge">
+                                <span>Doge</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('success')" title="Success Kid">
+                                <span>Success Kid</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('woman')" title="Woman Yelling at Cat">
+                                <span>Woman/Cat</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('batman')" title="Slapping Batman">
+                                <span>Slapping Robin</span>
+                            </div>
+                            <div class="template" onclick="loadTemplate('board')" title="Boardroom Meeting">
+                                <span>Boardroom</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bild skalieren:</label>
+                        <div class="slider-group">
+                            <input type="range" id="imageScale" min="50" max="200" value="100" step="10" />
+                            <span class="slider-value" id="scaleValue">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Canvas-Größe:</label>
+                        <select id="canvasSize">
+                            <option value="500">500x500 (Quadrat)</option>
+                            <option value="800">800x600 (Landschaft)</option>
+                            <option value="600">600x800 (Portrait)</option>
+                            <option value="1080">1080x1080 (Instagram)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tab: Text -->
+                <div id="text" class="tab-content">
+                    <div class="form-group">
+                        <label for="topText">Text oben:</label>
+                        <textarea id="topText" placeholder="OBERER TEXT"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bottomText">Text unten:</label>
+                        <textarea id="bottomText" placeholder="UNTERER TEXT"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fontFamily">Schriftart:</label>
+                        <select id="fontFamily">
+                            <option value="Impact">Impact (Klassisch)</option>
+                            <option value="Anton">Anton</option>
+                            <option value="Bangers">Bangers</option>
+                            <option value="Oswald">Oswald</option>
+                            <option value="Permanent Marker">Permanent Marker</option>
+                            <option value="Comic Neue">Comic Neue</option>
+                            <option value="Roboto Condensed">Roboto Condensed</option>
+                            <option value="Arial Black">Arial Black</option>
+                            <option value="Comic Sans MS">Comic Sans</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Text-Position:</label>
+                        <div class="position-group" style="display: flex; gap: 8px;">
+                            <button class="filter-btn active" onclick="setTextPosition('top-bottom', this)">Oben/Unten</button>
+                            <button class="filter-btn" onclick="setTextPosition('center', this)">Mittig</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Stil -->
+                <div id="style" class="tab-content">
+                    <div class="form-group">
+                        <label>Text-Farbe:</label>
+                        <div class="color-group">
+                            <input type="color" id="textColor" value="#ffffff" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Outline-Farbe:</label>
+                        <div class="color-group">
+                            <input type="color" id="outlineColor" value="#000000" />
+                            <label style="margin:0; font-weight:normal; font-size:12px;">
+                                <input type="checkbox" id="noOutline" /> Keine Outline
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Text-Größe:</label>
+                        <div class="slider-group">
+                            <input type="range" id="fontSize" min="20" max="100" value="40" step="2" />
+                            <span class="slider-value" id="fontSizeValue">40px</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Outline-Stärke:</label>
+                        <div class="slider-group">
+                            <input type="range" id="outlineWidth" min="0" max="15" value="4" step="1" />
+                            <span class="slider-value" id="outlineValue">4px</span>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="uppercase" checked />
+                        <label for="uppercase" style="margin: 0; font-weight: normal;">Text in Großbuchstaben</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="shadow" />
+                        <label for="shadow" style="margin: 0; font-weight: normal;">Schatten</label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Presets:</label>
+                        <div class="presets">
+                            <button class="preset-btn" onclick="applyPreset('classic')">Klassisch</button>
+                            <button class="preset-btn" onclick="applyPreset('modern')">Modern</button>
+                            <button class="preset-btn" onclick="applyPreset('comic')">Comic</button>
+                            <button class="preset-btn" onclick="applyPreset('minimal')">Minimal</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Effekte -->
+                <div id="effects" class="tab-content">
+                    <div class="form-group">
+                        <label>Bildfilter:</label>
+                        <div class="filter-group">
+                            <button class="filter-btn active" onclick="setFilter('none', this)">Keine</button>
+                            <button class="filter-btn" onclick="setFilter('grayscale', this)">Graustufen</button>
+                            <button class="filter-btn" onclick="setFilter('sepia', this)">Sepia</button>
+                            <button class="filter-btn" onclick="setFilter('invert', this)">Invertieren</button>
+                            <button class="filter-btn" onclick="setFilter('brightness', this)">Hell</button>
+                            <button class="filter-btn" onclick="setFilter('contrast', this)">Kontrast</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Filter-Stärke:</label>
+                        <div class="slider-group">
+                            <input type="range" id="filterStrength" min="0" max="200" value="100" step="10" />
+                            <span class="slider-value" id="filterValue">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="vignette" />
+                        <label for="vignette" style="margin: 0; font-weight: normal;">Vignette (dunkle Ränder)</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="border" />
+                        <label for="border" style="margin: 0; font-weight: normal;">Rahmen</label>
+                    </div>
+                </div>
+
+                <button onclick="renderMeme()">🎨 Meme generieren</button>
+                
+                <div class="export-group">
+                    <button class="download-btn" onclick="downloadMeme('png')">⬇️ PNG</button>
+                    <button class="secondary-btn" onclick="downloadMeme('jpg')">⬇️ JPG</button>
+                    <button class="secondary-btn" onclick="downloadMeme('webp')">⬇️ WebP</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>💡 Tipps:</strong>
+            <ul>
+                <li>Ziehe ein Bild per Drag & Drop auf das Canvas</li>
+                <li>Text wird automatisch in Großbuchstaben umgewandelt</li>
+                <li>Impact und Bangers sind klassische Meme-Schriftarten</li>
+                <li>Alles läuft lokal – keine Daten werden gesendet</li>
+                <li>Instagram-Format: 1080x1080</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('memeCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentImage = null;
+        let imageScale = 1;
+        let currentFilter = 'none';
+        let textPosition = 'top-bottom';
+
+        // Tab-Wechsel
+        function switchTab(tabName, element) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Filter setzen
+        function setFilter(filter, element) {
+            document.querySelectorAll('#effects .filter-btn').forEach(b => b.classList.remove('active'));
+            element.classList.add('active');
+            currentFilter = filter;
+            if (currentImage) renderMeme();
+        }
+
+        // Text-Position setzen
+        function setTextPosition(pos, element) {
+            document.querySelectorAll('.position-group .filter-btn').forEach(b => b.classList.remove('active'));
+            element.classList.add('active');
+            textPosition = pos;
+            if (currentImage) renderMeme();
+        }
+
+        // Presets anwenden
+        function applyPreset(preset) {
+            const presets = {
+                'classic': { font: 'Impact', size: 40, textColor: '#ffffff', outlineColor: '#000000', outline: 4, uppercase: true, shadow: false, noOutline: false },
+                'modern': { font: 'Oswald', size: 36, textColor: '#ffffff', outlineColor: '#333333', outline: 2, uppercase: false, shadow: true, noOutline: false },
+                'comic': { font: 'Comic Neue', size: 32, textColor: '#000000', outlineColor: '#ffffff', outline: 3, uppercase: false, shadow: false, noOutline: false },
+                'minimal': { font: 'Roboto Condensed', size: 28, textColor: '#333333', outlineColor: '#000000', outline: 0, uppercase: false, shadow: false, noOutline: true }
+            };
+            const p = presets[preset];
+            if (!p) return;
+            
+            document.getElementById('fontFamily').value = p.font;
+            document.getElementById('fontSize').value = p.size;
+            document.getElementById('fontSizeValue').textContent = p.size + 'px';
+            document.getElementById('textColor').value = p.textColor;
+            document.getElementById('outlineColor').value = p.outlineColor;
+            document.getElementById('outlineWidth').value = p.outline;
+            document.getElementById('outlineValue').textContent = p.outline + 'px';
+            document.getElementById('uppercase').checked = p.uppercase;
+            document.getElementById('shadow').checked = p.shadow;
+            document.getElementById('noOutline').checked = p.noOutline;
+            
+            if (currentImage) renderMeme();
+        }
+
+        // Slider-Werte aktualisieren
+        document.getElementById('imageScale').addEventListener('input', function() {
+            imageScale = parseInt(this.value) / 100;
+            document.getElementById('scaleValue').textContent = this.value + '%';
+            if (currentImage) renderMeme();
+        });
+
+        document.getElementById('fontSize').addEventListener('input', function() {
+            document.getElementById('fontSizeValue').textContent = this.value + 'px';
+            if (currentImage) renderMeme();
+        });
+
+        document.getElementById('outlineWidth').addEventListener('input', function() {
+            document.getElementById('outlineValue').textContent = this.value + 'px';
+            if (currentImage) renderMeme();
+        });
+
+        document.getElementById('filterStrength').addEventListener('input', function() {
+            document.getElementById('filterValue').textContent = this.value + '%';
+            if (currentImage) renderMeme();
+        });
+
+        // Canvas-Größe ändern
+        document.getElementById('canvasSize').addEventListener('change', function() {
+            const size = this.value;
+            if (size === '500') { canvas.width = 500; canvas.height = 500; }
+            else if (size === '800') { canvas.width = 800; canvas.height = 600; }
+            else if (size === '600') { canvas.width = 600; canvas.height = 800; }
+            else if (size === '1080') { canvas.width = 1080; canvas.height = 1080; }
+            if (currentImage) renderMeme();
+        });
+
+        // Text-Änderungen live rendern
+        ['topText', 'bottomText'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                if (currentImage) renderMeme();
+            });
+        });
+
+        // Stil-Änderungen live rendern
+        ['fontFamily', 'textColor', 'outlineColor', 'uppercase', 'shadow', 'vignette', 'border', 'noOutline'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                if (currentImage) renderMeme();
+            });
+        });
+
+        // Effekt-Änderungen live rendern
+        document.getElementById('filterStrength').addEventListener('change', () => {
+            if (currentImage) renderMeme();
+        });
+
+        // Bild hochladen
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) loadImageFile(file);
+        });
+
+        function loadImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Bitte wähle eine Bilddatei!');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Bild darf max. 10MB groß sein!');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = img;
+                    renderMeme();
+                };
+                img.onerror = function() {
+                    alert('Bild konnte nicht geladen werden!');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Drag & Drop
+        const canvasContainer = document.getElementById('canvasContainer');
+        const dropZone = document.getElementById('dropZone');
+
+        canvasContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('active');
+        });
+
+        canvasContainer.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('active');
+        });
+
+        canvasContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('active');
+            const file = e.dataTransfer.files[0];
+            if (file) loadImageFile(file);
+        });
+
+        // Template laden
+        function loadTemplate(name) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 500;
+            tempCanvas.height = 500;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            const colors = {
+                'drake': ['#ff6b6b', '#4ecdc4'],
+                'distracted': ['#a8e6cf', '#dcedc1'],
+                'change': ['#ffd93d', '#6bcf7f'],
+                'doge': ['#f9ca24', '#f0932b'],
+                'success': ['#74b9ff', '#a29bfe'],
+                'woman': ['#fd79a8', '#e84393'],
+                'batman': ['#2d3436', '#636e72'],
+                'board': ['#00b894', '#00cec9']
+            };
+            const [c1, c2] = colors[name] || ['#ccc', '#999'];
+            const gradient = tempCtx.createLinearGradient(0, 0, 500, 500);
+            gradient.addColorStop(0, c1);
+            gradient.addColorStop(1, c2);
+            tempCtx.fillStyle = gradient;
+            tempCtx.fillRect(0, 0, 500, 500);
+            
+            tempCtx.fillStyle = 'rgba(255,255,255,0.9)';
+            tempCtx.font = 'bold 28px Arial';
+            tempCtx.textAlign = 'center';
+            tempCtx.fillText(name.toUpperCase(), 250, 230);
+            tempCtx.font = '16px Arial';
+            tempCtx.fillText('Template-Platzhalter', 250, 270);
+            tempCtx.fillText('Lade eigenes Bild hoch für echtes Meme', 250, 295);
+            
+            const img = new Image();
+            img.onload = function() {
+                currentImage = img;
+                renderMeme();
+            };
+            img.onerror = function() {
+                alert('Template konnte nicht geladen werden!');
+            };
+            img.src = tempCanvas.toDataURL();
+        }
+
+        // Filter anwenden (nur auf Bild-Bereich)
+        function applyFilter(ctx, img, filter, strength) {
+            if (filter === 'none' || strength <= 0) return;
+            
+            const scale = imageScale;
+            const drawWidth = img.width * scale;
+            const drawHeight = img.height * scale;
+            const x = (canvas.width - drawWidth) / 2;
+            const y = (canvas.height - drawHeight) / 2;
+            
+            // Nur den Bild-Bereich filtern
+            const imageData = ctx.getImageData(x, y, drawWidth, drawHeight);
+            const data = imageData.data;
+            const factor = strength / 100;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                
+                switch(filter) {
+                    case 'grayscale':
+                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                        data[i] = r + (gray - r) * factor;
+                        data[i+1] = g + (gray - g) * factor;
+                        data[i+2] = b + (gray - b) * factor;
+                        break;
+                    case 'sepia':
+                        const tr = 0.393 * r + 0.769 * g + 0.189 * b;
+                        const tg = 0.349 * r + 0.686 * g + 0.168 * b;
+                        const tb = 0.272 * r + 0.534 * g + 0.131 * b;
+                        data[i] = r + (tr - r) * factor;
+                        data[i+1] = g + (tg - g) * factor;
+                        data[i+2] = b + (tb - b) * factor;
+                        break;
+                    case 'invert':
+                        data[i] = r + (255 - r - r) * factor;
+                        data[i+1] = g + (255 - g - g) * factor;
+                        data[i+2] = b + (255 - b - b) * factor;
+                        break;
+                    case 'brightness':
+                        const bright = 255 * factor; // FIX: Bei 100% = volle Helligkeit
+                        data[i] = Math.min(255, r + bright * (factor > 1 ? 1 : 0.5));
+                        data[i+1] = Math.min(255, g + bright * (factor > 1 ? 1 : 0.5));
+                        data[i+2] = Math.min(255, b + bright * (factor > 1 ? 1 : 0.5));
+                        break;
+                    case 'contrast':
+                        const contrastFactor = factor * 2; // Vereinfacht
+                        const avg = (r + g + b) / 3;
+                        data[i] = Math.min(255, Math.max(0, avg + (r - avg) * contrastFactor));
+                        data[i+1] = Math.min(255, Math.max(0, avg + (g - avg) * contrastFactor));
+                        data[i+2] = Math.min(255, Math.max(0, avg + (b - avg) * contrastFactor));
+                        break;
+                }
+            }
+            ctx.putImageData(imageData, x, y);
+        }
+
+        // Meme rendern
+        function renderMeme() {
+            if (!currentImage) {
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Lade ein Bild hoch oder wähle ein Template', canvas.width/2, canvas.height/2);
+                ctx.font = '14px Arial';
+                ctx.fillText('oder ziehe ein Bild per Drag & Drop hierher', canvas.width/2, canvas.height/2 + 30);
+                return;
+            }
+
+            // Canvas zurücksetzen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Bild zeichnen (skaliert, zentriert)
+            const img = currentImage;
+            const scale = imageScale;
+            const drawWidth = Math.round(img.width * scale);
+            const drawHeight = Math.round(img.height * scale);
+            const x = Math.round((canvas.width - drawWidth) / 2);
+            const y = Math.round((canvas.height - drawHeight) / 2);
+            
+            ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+            // Filter anwenden
+            const filterStrength = parseInt(document.getElementById('filterStrength').value);
+            if (currentFilter !== 'none' && filterStrength > 0) {
+                applyFilter(ctx, img, currentFilter, filterStrength);
+            }
+
+            // Vignette
+            if (document.getElementById('vignette').checked) {
+                const gradient = ctx.createRadialGradient(
+                    canvas.width/2, canvas.height/2, canvas.width * 0.3,
+                    canvas.width/2, canvas.height/2, canvas.width * 0.8
+                );
+                gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0.6)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Rahmen
+            if (document.getElementById('border').checked) {
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+            }
+
+            // Text-Einstellungen
+            const fontFamily = document.getElementById('fontFamily').value;
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const textColor = document.getElementById('textColor').value;
+            const noOutline = document.getElementById('noOutline').checked;
+            const outlineColor = document.getElementById('outlineColor').value;
+            const outlineWidth = noOutline ? 0 : parseInt(document.getElementById('outlineWidth').value);
+            const uppercase = document.getElementById('uppercase').checked;
+            const shadow = document.getElementById('shadow').checked;
+
+            ctx.font = `bold ${fontSize}px ${fontFamily}, Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            // Text vorbereiten
+            let topText = document.getElementById('topText').value;
+            let bottomText = document.getElementById('bottomText').value;
+            
+            if (uppercase) {
+                topText = topText.toUpperCase();
+                bottomText = bottomText.toUpperCase();
+            }
+
+            // Schatten
+            if (shadow) {
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+            } else {
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // Text zeichnen basierend auf Position
+            const maxTextWidth = canvas.width - 30;
+            
+            if (textPosition === 'top-bottom') {
+                if (topText) {
+                    drawTextWithOutline(topText, canvas.width / 2, 15, textColor, outlineColor, outlineWidth, maxTextWidth);
+                }
+                if (bottomText) {
+                    const lines = wrapText(bottomText, maxTextWidth);
+                    const totalHeight = lines.length * (fontSize * 1.2);
+                    drawTextWithOutline(bottomText, canvas.width / 2, canvas.height - totalHeight - 15, textColor, outlineColor, outlineWidth, maxTextWidth);
+                }
+            } else if (textPosition === 'center') {
+                const text = topText || bottomText;
+                if (text) {
+                    const lines = wrapText(text, maxTextWidth);
+                    const totalHeight = lines.length * (fontSize * 1.2);
+                    const startY = (canvas.height - totalHeight) / 2;
+                    drawTextWithOutline(text, canvas.width / 2, startY, textColor, outlineColor, outlineWidth, maxTextWidth);
+                }
+            }
+        }
+
+        // Text umbrechen
+        function wrapText(text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                const testLine = currentLine ? currentLine + ' ' + word : word;
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+            return lines;
+        }
+
+        // Text mit Outline zeichnen
+        function drawTextWithOutline(text, x, y, fillColor, outlineColor, outlineWidth, maxWidth) {
+            const lines = wrapText(text, maxWidth);
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const lineHeight = fontSize * 1.2;
+            
+            lines.forEach((line, index) => {
+                const lineY = y + (index * lineHeight);
+                
+                // Outline
+                if (outlineWidth > 0) {
+                    ctx.strokeStyle = outlineColor;
+                    ctx.lineWidth = outlineWidth * 2;
+                    ctx.lineJoin = 'round';
+                    ctx.miterLimit = 2;
+                    ctx.strokeText(line, x, lineY);
+                }
+                
+                // Fill
+                ctx.fillStyle = fillColor;
+                ctx.fillText(line, x, lineY);
+            });
+        }
+
+        // Meme herunterladen
+        function downloadMeme(format = 'png') {
+            if (!currentImage) {
+                alert('Bitte generiere zuerst ein Meme!');
+                return;
+            }
+
+            const link = document.createElement('a');
+            let mimeType, extension, quality;
+            
+            switch(format) {
+                case 'jpg':
+                    mimeType = 'image/jpeg';
+                    extension = 'jpg';
+                    quality = 0.92;
+                    break;
+                case 'webp':
+                    mimeType = 'image/webp';
+                    extension = 'webp';
+                    quality = 0.92;
+                    break;
+                default:
+                    mimeType = 'image/png';
+                    extension = 'png';
+                    quality = 1.0;
+            }
+            
+            link.download = `meme.${extension}`;
+            link.href = canvas.toDataURL(mimeType, quality);
+            link.click();
+        }
+
+        // Initial render
+        renderMeme();
+    </script>
+</body>
+</html>
